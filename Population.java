@@ -1,3 +1,4 @@
+import java.util.Arrays;
 /**
  *This class allows simulation of evolution with some simple parametres
  *<br>The Population is represented by an array of individuals, which have
@@ -10,36 +11,24 @@
 public class Population {
 
     private Individual[] population;
-    private Individual weakest;
-    private int chromosomLength;
-
     /**
      * Initializes an Population. Each individual gets its own chromosom,
      * which means its own sequence of 0 and 1. For every position 0 or 1 is chosen
      * randomly by a chance of 50:50.
-     * @param chromosomLength Length of the chromosome (number of bits)
+     * @param chromosomeLength Length of the chromosome (number of bits)
      * @param size Size of the population
      */
-    Population(int chromosomLength, int size){
+    Population(int chromosomeLength, int size){
         population = new Individual[size];
-        this.chromosomLength = chromosomLength;
-        this.weakest = new Individual(chromosomLength);
-        //Population initialisieren und dabei den schwaechsten finden
         for(int i = 0; i < size; i++){
             //Neues Individuum erstellen
-            this.population[i] = new Individual(chromosomLength);
+            this.population[i] = new Individual(chromosomeLength);
 
             //jedes Bit des Indivuduums zufaellig setzen
-            for(int j = 0; j < chromosomLength; j++){
+            for(int j = 0; j < chromosomeLength; j++){
                 int bit = (int)(Math.random()*2);
                 this.population[i].setBit(j, bit);
-                //Staerke des Individuums anpassen
-                this.population[i].strength+=bit;
             }
-
-            //falls Indivuduum schwaecher als das vorherig schwaechste ersetzen
-            this.weakest = this.population[i].strength < this.weakest.strength? this.population[i] : this.weakest;
-            //this.population[i].print();
         }
     }
 
@@ -57,10 +46,10 @@ public class Population {
             //Vater und Mutter aus der Population auwaehlen
             int vater = (int) Math.floor(Math.random() * population.length);
             int mutter = (int) Math.floor(Math.random() * population.length);
-            Individual kind = new Individual(chromosomLength);
+            Individual kind = new Individual(population[vater].getLength());
 
             //fuer jedes Bit im Chromosom Eltern vergleichen
-            for (int i = 0; i < this.chromosomLength; i++) {
+            for (int i = 0; i < kind.getLength(); i++) {
                 //mit 50:50 chance bit von Vater oder Mutter verwenden
                 int bit = (int) Math.random() * 2 == 0 ? population[vater].getBit(i) : population[mutter].getBit(i);
                 //mit mutationsrate Bit mutieren lassen
@@ -69,8 +58,6 @@ public class Population {
                 bit = mutation == 0 ? (bit == 0 ? 1 : 0) : bit;
                 //bit in kind einsetzen
                 kind.setBit(i, bit);
-                //staerke des kindes anpassen
-                kind.strength += bit;
             }
             //schwaechstes Populationsmitglied durch Kind ersetzen
             int weak = findWeakest();
@@ -84,11 +71,13 @@ public class Population {
      */
     public int findWeakest(){
         int position = -1;
-        Individual weakest = new Individual(chromosomLength, chromosomLength);
+        int[] weakestChromosome = new int[population[0].getLength()];
+        Arrays.fill(weakestChromosome, 1);
+        Individual weakest = new Individual(weakestChromosome);
 
         for(int i = 0; i < population.length; i++) {
-            position = this.population[i].strength < weakest.strength ? i : position;
-            weakest = this.population[i].strength < weakest.strength ? this.population[i] : weakest;
+            position = this.population[i].getStrength() < weakest.getStrength()? i : position;
+            weakest = this.population[i].getStrength() < weakest.getStrength()? this.population[i] : weakest;
         }
         return position;
     }
@@ -97,9 +86,8 @@ public class Population {
      * Prints the population, represented by the sequence of 1 and 0 (chromosome)
      */
     public void printPopulution(){
-        for (int i = 0; i < this.population.length; i++){
+        for (int i = 0; i < this.population.length; i++)
             this.population[i].print();
-        }
     }
 
     /**
@@ -109,9 +97,8 @@ public class Population {
      */
     public int populationStrength(){
         int strength = 0;
-        for (int i = 0; i < this.population.length; i++){
-            strength+=population[i].strength;
-        }
+        for (int i = 0; i < this.population.length; i++)
+            strength+=population[i].getStrength();
         return strength;
     }
 }
